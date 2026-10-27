@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Programme Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: same gym-at-night world as Brain Gym. Header, then one card per screen; chats stack on phones. */
+:root{
+  --floor:#141519; --panel:#1d1f25; --panel-2:#262931; --line:#33363f;
+  --chalk:#f2efe8; --dim:#a3a7b3; --steel:#7f8592; --steel-hi:#c9ccd3;
+  --feel:#ff6a3d; --real:#3ddc97; --warn:#ff5a5f; --mj:#2b3a55; --mj-line:#3f5478;
+  --display:"Anton","Impact","Arial Narrow",sans-serif;
+  --body:"Figtree","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--floor);color:var(--chalk);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(16px,env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-bottom,0px));
+  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 2px,transparent 2px 48px)}
+.app{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-size:28px;letter-spacing:.04em;line-height:1}
+.brand span{color:var(--feel)}
+.prog{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:5px 10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.tag{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--feel)}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,7vw,40px);line-height:1.05;margin:0;letter-spacing:.02em;text-wrap:balance}
+h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0;letter-spacing:.03em}
+p{margin:0}
+.small{font-size:14px;color:var(--dim)}
+.coach{display:flex;gap:12px;align-items:flex-start}
+.avatar{flex:none;width:40px;height:40px;border-radius:50%;background:var(--chalk);color:var(--floor);display:grid;place-items:center;font-family:var(--display);font-size:20px}
+.say{background:var(--panel-2);border-radius:4px 14px 14px 14px;padding:10px 14px;min-width:0}
+.say b{display:block;font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:2px}
+.puzzle{border:1px dashed var(--steel);border-radius:10px;padding:12px 14px;font-weight:600}
+.puzzle small{display:block;font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;font-weight:500}
+.btn{font:700 16px var(--body);background:var(--chalk);color:var(--floor);border:0;border-radius:10px;padding:12px 18px;cursor:pointer;align-self:flex-start}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.ghost{background:transparent;color:var(--chalk);border:1px solid var(--line)}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--feel);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px}
+.pick{font:400 30px var(--display);letter-spacing:.03em;background:var(--panel-2);color:var(--chalk);border:1px solid var(--line);border-radius:12px;padding:16px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pick small{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.pick.sel{border-color:var(--feel);box-shadow:inset 0 0 0 1px var(--feel)}
+.pick.wide{font-size:22px}
+.stakes{font-family:var(--display);font-size:clamp(22px,5.5vw,30px);line-height:1.15;letter-spacing:.02em;color:var(--chalk);border-left:4px solid var(--feel);padding-left:14px;text-wrap:balance}
+/* chats */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chat{background:var(--floor);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.chat h3{margin:0 0 4px;display:flex;align-items:center;gap:8px;font:600 15px var(--body)}
+.chat h3 i{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:400 14px var(--display);font-style:normal;color:var(--floor)}
+.msg{max-width:92%;padding:8px 11px;border-radius:12px;font-size:14px;line-height:1.4;opacity:0;transform:translateY(6px);transition:.35s;overflow-wrap:anywhere}
+.msg.on{opacity:1;transform:none}
+.msg.me{align-self:flex-end;background:var(--chalk);color:var(--floor);border-bottom-right-radius:4px}
+.msg.mj{align-self:flex-start;background:var(--mj);border:1px solid var(--mj-line);border-bottom-left-radius:4px}
+.msg.mj::before{content:"Mindjoy";display:block;font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--steel-hi);margin-bottom:2px}
+/* choice options */
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;font:500 15px var(--body);background:var(--panel-2);color:var(--chalk);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
+.opt.sel{border-color:var(--feel)}
+.opt.right{border-color:var(--real);background:rgba(61,220,151,.1)}
+.opt.wrong{border-color:var(--warn);background:rgba(255,90,95,.1)}
+.opt:disabled{cursor:default}
+.opt .lbl{display:block;font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:3px}
+.opt .def{display:block;font-size:13px;font-weight:400;color:var(--dim);margin-top:2px}
+.opt.bubble{border-radius:14px 14px 4px 14px}
+.result{border-radius:10px;padding:12px 14px;font-weight:500}
+.result.bad{background:rgba(255,90,95,.12);border:1px solid rgba(255,90,95,.45)}
+.result.good{background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.45)}
+.result.info{background:var(--panel-2);border:1px solid var(--line)}
+/* meters */
+.meter{display:flex;flex-direction:column;gap:4px}
+.meter .lbl{display:flex;justify-content:space-between;font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.meter .lbl b{font:400 18px var(--display);color:var(--chalk);letter-spacing:.02em}
+.track{height:9px;background:var(--panel-2);border-radius:99px;overflow:hidden}
+.fill{height:100%;width:0;border-radius:99px;transition:width .8s cubic-bezier(.3,1.3,.5,1)}
+.fill.f{background:var(--feel)} .fill.r{background:var(--real)}
+.mymeters{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.mark{font:400 28px var(--display);letter-spacing:.02em}
+.mark.x{color:var(--warn)} .mark.ok{color:var(--real)}
+/* answer input */
+.answer{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.ansbox{display:flex;align-items:center;background:var(--floor);border:1px solid var(--steel);border-radius:10px;padding-left:12px}
+.ansbox span{font-family:var(--display);font-size:20px;color:var(--dim);white-space:nowrap}
+.ansbox input{width:130px;background:transparent;border:0;color:var(--chalk);font-family:var(--display);font-size:24px;padding:8px 10px;letter-spacing:.02em}
+.ansbox input:focus{outline:none}
+.ansbox:focus-within{border-color:var(--feel)}
+.reps{display:flex;gap:6px}
+.reps i{flex:1;height:6px;border-radius:99px;background:var(--panel-2)}
+.reps i.done{background:var(--real)}
+.nudge{color:var(--feel);font-weight:500}
+.hint{color:var(--steel-hi);font-style:italic}
+.movelist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mv{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.mv b{font-family:var(--display);font-weight:400;font-size:18px;letter-spacing:.03em}
+.mv span{font-size:13px;color:var(--dim)}
+.mv.yes{border-color:var(--real)} .mv.yes b{color:var(--real)}
+.mv.no b{color:var(--dim)}
+.topr{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.movesbtn{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--floor);background:var(--chalk);border:0;border-radius:99px;padding:6px 11px;cursor:pointer}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,11,14,.78);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.overlay[hidden]{display:none}
+.overlay{animation:fadein .2s ease-out}
+.overlay .modal{animation:rise .25s ease-out}
+@keyframes fadein{from{opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+h1:focus{outline:none}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;max-width:560px;width:100%;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.modal .mv.yes b{color:var(--chalk)}
+.chat h3 .time{margin-left:auto;font:500 11px var(--mono);letter-spacing:.06em;color:var(--dim);text-transform:uppercase}
+.pslide{display:flex;flex-direction:column;gap:4px}
+.pslide label{display:flex;justify-content:space-between;align-items:baseline;font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.pslide label b{font:400 20px var(--display);color:var(--chalk);letter-spacing:.02em}
+.pslide input{width:100%}
+.pslide input.f{accent-color:var(--feel)} .pslide input.r{accent-color:var(--real)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+sup{font-size:.7em}
+@media (max-width:520px){.duo{grid-template-columns:1fr}.movelist{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">PROGRAMME <span>DAY</span></div>
+    <div class="topr"><button class="movesbtn" type="button" id="movesBtn">The four moves</button><div class="prog" id="progLabel" hidden></div></div>
+  </div>
+  <div class="overlay" id="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mvTitle">
+      <div class="tag">Quick reminder</div>
+      <h2 id="mvTitle">The four moves</h2>
+      <div class="movelist">
+        <div class="mv yes"><b>Warm up</b><span>Tell Mindjoy what you already get and where you get lost.</span></div>
+        <div class="mv yes"><b>Spot me</b><span>Ask for a hint, not the answer, and do the step yourself.</span></div>
+        <div class="mv yes"><b>One more rep</b><span>Ask for a similar question and try it alone.</span></div>
+        <div class="mv yes"><b>Check my form</b><span>Show your working or explain it back, and ask what went wrong.</span></div>
+      </div>
+      <p class="small">You can open this again any time with the button at the top.</p>
+      <button class="btn" type="button" id="closeMoves">Got it</button>
+    </div>
+  </div>
+  <div class="mymeters" id="mymeters" hidden aria-live="polite">
+    <div class="meter"><div class="lbl">Feels strong <b id="mf">0</b></div><div class="track"><div class="fill f" id="mff"></div></div></div>
+    <div class="meter"><div class="lbl">Actually strong <b id="mr">0</b></div><div class="track"><div class="fill r" id="mrf"></div></div></div>
+  </div>
+  <main class="card" id="card"></main>
+  <div class="sr" aria-live="polite" id="sr"></div>
+</div>
+
+<script>
+(function(){
+/* ---------- CONTENT: one entry per programme ---------- */
+const STAKES={
+ 8:"Grade 8 is your first full year of high school exams. The habits you build now stay with you.",
+ 9:"Your Grade 9 marks shape the subjects you can choose for Grade 10.",
+ 10:"Grade 10 is the jump to FET subjects. Gaps you leave now follow you all the way to matric.",
+ 11:"Your Grade 11 marks are the ones universities see when you apply.",
+ 12:"This is matric. Your NSC results decide your university place and your bursaries."
+};
+const CLOSE=[
+ {w:"mj",t:"That's it. And you did the lifting."},
+ {w:"me",t:"can you give me one more like it to try on my own?"},
+ {w:"mj",t:"Deal. Here you go."}
+];
+const P={
+"8":{name:"Grade 8 · Mathematics",topic:"Linear equations",unit:"x =",
+ A:"Solve: 3x + 5 = 20",
+ naledi:{ask:"pls just give me the answer. 3x + 5 = 20",sol:"Here is the full solution. 3x + 5 = 20. Subtract 5 from both sides: 3x = 15. Divide both sides by 3: x = 5."},
+ dylan:[
+  {w:"me",t:"I'm on equations. I know I need x on its own but I never know what to do first. Don't give me the answer, just help me start?"},
+  {w:"mj",t:"Good place to start. x is multiplied by 3, then 5 is added. Which one would you undo first?"},
+  {w:"me",t:"divide by 3 first? so x + 5 = 20/3"},
+  {w:"mj",t:"Careful. Dividing by 3 would divide the 5 as well. Try undoing the + 5 first. What happens?"},
+  {w:"me",t:"oh. take 5 from both sides: 3x = 15"},
+  {w:"mj",t:"Exactly. What is left to undo?"},
+  {w:"me",t:"divide by 3. x = 5"}],
+ B:"Solve: 4x − 7 = 21",
+ nAns:"x = 3.5",nWhy:"She subtracted 7 instead of adding it, so she got 4x = 14.",
+ dAns:"x = 7",dWhy:"Add 7 to both sides: 4x = 28, so x = 7.",
+ C:"Solve: 5x + 8 = 43",cAns:"x = 7",
+ warm:"I'm on equations. I know I need x alone, but I get stuck on what to undo first. Can we start there?",
+ steps:[
+  {q:"What is being added to 5x? Undo it on both sides. 5x = ?",a:35,u:"5x =",hint:"Take 8 away from 43."},
+  {q:"Now undo the multiplying. x = ?",a:7,u:"x =",hint:"Divide 35 by 5."},
+  {q:"Check your form. Put your answer back in: 5(7) + 8 = ?",a:43,u:"=",hint:"5 times 7, then add 8.",check:true}],
+ D:"Solve: 6x − 4 = 32",dA:6,dU:"x =",dExp:"Add 4 to both sides: 6x = 36, so x = 6."},
+
+"9":{name:"Grade 9 · Mathematics",topic:"Equations with brackets",
+ A:"Solve: 2(x + 3) = 14",
+ naledi:{ask:"pls just give me the answer. 2(x + 3) = 14",sol:"Here is the full solution. 2(x + 3) = 14. Expand the brackets: 2x + 6 = 14. Subtract 6: 2x = 8. Divide by 2: x = 4."},
+ dylan:[
+  {w:"me",t:"I'm doing equations with brackets. I can solve normal ones, it's the brackets that throw me. Just help me with the first step?"},
+  {w:"mj",t:"Sure. Multiply everything inside the brackets by 2. What do you get?"},
+  {w:"me",t:"2x + 3 = 14"},
+  {w:"mj",t:"Look at the 3. Does the 2 multiply that too?"},
+  {w:"me",t:"oh ya. 2x + 6 = 14"},
+  {w:"mj",t:"Spot on. Now solve it the way you normally would."},
+  {w:"me",t:"2x = 8 so x = 4"}],
+ B:"Solve: 3(x − 2) = 18",
+ nAns:"x = 6.67",nWhy:"She only multiplied the x by 3 and wrote 3x − 2 = 18.",
+ dAns:"x = 8",dWhy:"Expand: 3x − 6 = 18. So 3x = 24 and x = 8.",
+ C:"Solve: 4(x + 5) = 36",cAns:"x = 4",
+ warm:"Brackets again. I can solve normal equations, it's the brackets that get me. Can we start there?",
+ steps:[
+  {q:"Expand the brackets. 4x + ? = 36",a:20,u:"4x +",hint:"Multiply the 5 by 4 as well."},
+  {q:"Now solve it the normal way. x = ?",a:4,u:"x =",hint:"Take 20 from both sides, then divide by 4."},
+  {q:"Check your form. 4(4 + 5) = ?",a:36,u:"=",hint:"Add inside the brackets first, then multiply by 4.",check:true}],
+ D:"Solve: 5(x − 1) = 30",dA:7,dU:"x =",dExp:"Expand: 5x − 5 = 30. So 5x = 35 and x = 7."},
+
+"10-maths":{name:"Grade 10 · Mathematics",topic:"Equations with fractions",
+ A:"Solve: (x + 4) ÷ 3 = 5",
+ naledi:{ask:"pls just give me the answer. (x + 4)/3 = 5",sol:"Here is the full solution. (x + 4) ÷ 3 = 5. Multiply both sides by 3: x + 4 = 15. Subtract 4: x = 11."},
+ dylan:[
+  {w:"me",t:"I'm on equations with fractions. The fraction makes me panic. Can you give me a hint, not the answer?"},
+  {w:"mj",t:"Hint: get rid of the fraction first. What could you multiply both sides by?"},
+  {w:"me",t:"3? so x + 4 = 15, x = 19"},
+  {w:"mj",t:"Nearly. To get x on its own, do you add the 4 or take it away?"},
+  {w:"me",t:"take it away. x = 11"}],
+ B:"Solve: (2x − 1) ÷ 5 = 3",
+ nAns:"x = 2",nWhy:"She forgot to multiply both sides by 5 and wrote 2x − 1 = 3.",
+ dAns:"x = 8",dWhy:"Multiply both sides by 5: 2x − 1 = 15. So 2x = 16 and x = 8.",
+ C:"Solve: (3x + 2) ÷ 4 = 5",cAns:"x = 6",
+ warm:"Fractions in equations make me panic. Once the fraction is gone I'm fine. Can we start there?",
+ steps:[
+  {q:"Clear the fraction. Multiply both sides by 4. 3x + 2 = ?",a:20,u:"3x + 2 =",hint:"5 times 4."},
+  {q:"Now solve. x = ?",a:6,u:"x =",hint:"Take 2 away from both sides, then divide by 3."},
+  {q:"Check your form. (3(6) + 2) ÷ 4 = ?",a:5,u:"=",hint:"18 plus 2, then divide by 4.",check:true}],
+ D:"Solve: (x − 6) ÷ 2 = 7",dA:20,dU:"x =",dExp:"Multiply both sides by 2: x − 6 = 14, so x = 20."},
+
+"10-lit":{name:"Grade 10 · Mathematical Literacy",topic:"Discounts",
+ A:"A pair of takkies costs R400. They are 25% off. What is the sale price?",
+ naledi:{ask:"pls just give me the answer. R400 takkies, 25% off",sol:"Here is the full solution. 25% of R400 is R100. That is the saving. R400 − R100 = R300. The sale price is R300."},
+ dylan:[
+  {w:"me",t:"I'm doing discounts. I can find a percentage but then I mix up what to do next. Help me with the steps?"},
+  {w:"mj",t:"Step by step, then. What is 25% of R400?"},
+  {w:"me",t:"R40?"},
+  {w:"mj",t:"That is 10%. 25% is a quarter. Try again."},
+  {w:"me",t:"R100"},
+  {w:"mj",t:"Good. Is R100 the sale price, or the amount you save?"},
+  {w:"me",t:"the amount I save. so R400 − R100 = R300"}],
+ B:"A jacket costs R250. It is 20% off. What is the sale price?",
+ nAns:"R50",nWhy:"She worked out the discount, then stopped. R50 is what you save, not what you pay.",
+ dAns:"R200",dWhy:"20% of R250 is R50. R250 − R50 = R200.",
+ C:"A school bag costs R360. It is 15% off. What is the sale price?",cAns:"R306",
+ warm:"I can work out percentages, but I mix up the saving and the sale price. Can we start there?",
+ steps:[
+  {q:"Start with 10% of R360.",a:36,u:"R",hint:"10% means move the decimal one place to the left."},
+  {q:"5% is half of 10%. So 15% of R360 is?",a:54,u:"R",hint:"R36 plus half of R36."},
+  {q:"That is the saving. What is the sale price?",a:306,u:"R",hint:"Take the saving off the original price."},
+  {q:"Check your form. Sale price plus saving: R306 + R54 = ?",a:360,u:"R",hint:"If it matches the original price, you are right.",check:true}],
+ D:"Headphones cost R480. They are 25% off. What is the sale price?",dA:360,dU:"R",dExp:"25% of R480 is R120. R480 − R120 = R360."},
+
+"11-maths":{name:"Grade 11 · Mathematics",topic:"Quadratic equations",
+ A:"Solve: x² + x − 12 = 0",
+ naledi:{ask:"pls just give me the answer. x² + x − 12 = 0",sol:"Here is the full solution. Find two numbers that multiply to −12 and add to 1: 4 and −3. So (x + 4)(x − 3) = 0, which gives x = −4 or x = 3."},
+ dylan:[
+  {w:"me",t:"I'm on quadratics. I know I need to factorise, I just can't find the two numbers. Just a hint?"},
+  {w:"mj",t:"You need two numbers that multiply to −12 and add to +1. Try a few pairs."},
+  {w:"me",t:"3 and −4?"},
+  {w:"mj",t:"Those multiply to −12. What do they add to?"},
+  {w:"me",t:"−1. so 4 and −3"},
+  {w:"mj",t:"Exactly. So how does it factorise?"},
+  {w:"me",t:"(x + 4)(x − 3) = 0 so x = −4 or x = 3"}],
+ B:"Solve: x² − 2x − 15 = 0",
+ nAns:"x = −5 or x = 3",nWhy:"She found 5 and 3, but swapped the signs.",
+ dAns:"x = 5 or x = −3",dWhy:"(x − 5)(x + 3) = 0, so x = 5 or x = −3.",
+ C:"Solve: x² + 2x − 24 = 0. Give the positive solution.",cAns:"x = 4 (or x = −6)",
+ warm:"Quadratics. I can factorise, I just can't find the two numbers. Can we start there?",
+ steps:[
+  {q:"Find two numbers that multiply to −24 and add to +2. What is the positive one?",a:6,u:"",hint:"Look at factor pairs of 24 that are 2 apart."},
+  {q:"So (x + 6)(x − 4) = 0. What is the positive solution?",a:4,u:"x =",hint:"Which bracket can equal zero when x is positive?"},
+  {q:"Check your form. 4² + 2(4) − 24 = ?",a:0,u:"=",hint:"16 plus 8, then take away 24.",check:true}],
+ D:"Solve: x² − x − 20 = 0. Give the positive solution.",dA:5,dU:"x =",dExp:"(x − 5)(x + 4) = 0, so x = 5 or x = −4."},
+
+"11-lit":{name:"Grade 11 · Mathematical Literacy",topic:"Simple interest",
+ A:"R2 000 is saved at 8% simple interest per year for 3 years. How much interest does it earn?",
+ naledi:{ask:"pls just give me the answer. R2000, 8% simple interest, 3 years",sol:"Here is the full solution. 8% of R2 000 is R160 for one year. Simple interest is the same each year, so R160 × 3 = R480. The interest is R480."},
+ dylan:[
+  {w:"me",t:"I'm doing simple interest. I know there's a formula but I freeze. Can we do it in steps?"},
+  {w:"mj",t:"Let's leave the formula for now. What is 8% of R2 000, for one year?"},
+  {w:"me",t:"R1 600?"},
+  {w:"mj",t:"That would be 80%. Try 1% first, then times 8."},
+  {w:"me",t:"1% is R20, so R160"},
+  {w:"mj",t:"Right. Simple interest is the same every year. So for 3 years?"},
+  {w:"me",t:"R480"}],
+ B:"R5 000 is invested at 6% simple interest per year for 4 years. What is the total amount at the end?",
+ nAns:"R1 200",nWhy:"She worked out the interest, but the question asked for the total amount.",
+ dAns:"R6 200",dWhy:"6% of R5 000 is R300 a year. R1 200 over 4 years. R5 000 + R1 200 = R6 200.",
+ C:"R3 000 is invested at 9% simple interest per year for 2 years. What is the total amount at the end?",cAns:"R3 540",
+ warm:"Simple interest. I understand percentages, I just freeze on the steps. Can we start there?",
+ steps:[
+  {q:"Interest for one year. What is 9% of R3 000?",a:270,u:"R",hint:"1% of R3 000 is R30."},
+  {q:"Interest for two years?",a:540,u:"R",hint:"Simple interest is the same every year."},
+  {q:"Total amount after two years?",a:3540,u:"R",hint:"Add the interest to the amount you put in."},
+  {q:"Check your form. R3 540 − R3 000 = ?",a:540,u:"R",hint:"It should match your interest for two years.",check:true}],
+ D:"R4 000 is invested at 5% simple interest per year for 3 years. What is the total amount at the end?",dA:4600,dU:"R",dExp:"5% of R4 000 is R200 a year. R600 over 3 years. R4 000 + R600 = R4 600."},
+
+"12-maths":{name:"Grade 12 · Mathematics",topic:"Past paper style · Paper 1 · Exponential equations",
+ A:"Solve: 3<sup>x+1</sup> − 3<sup>x</sup> = 54",
+ naledi:{ask:"pls just give me the answer. 3^(x+1) − 3^x = 54",sol:"Here is the full solution. 3^(x+1) = 3^x × 3. Take out the common factor: 3^x(3 − 1) = 54. So 2 × 3^x = 54, which gives 3^x = 27 and x = 3."},
+ dylan:[
+  {w:"me",t:"Past paper Q1. I can do 3^x = 27, but not when there are two terms. Hint only pls"},
+  {w:"mj",t:"Hint: 3^(x+1) is the same as 3^x × 3. Can you take out a common factor?"},
+  {w:"me",t:"3^x(3 + 1) = 54?"},
+  {w:"mj",t:"Careful with the sign between the two terms."},
+  {w:"me",t:"3^x(3 − 1) = 54 so 2 × 3^x = 54"},
+  {w:"mj",t:"Nice. Keep going."},
+  {w:"me",t:"3^x = 27 so x = 3"}],
+ B:"Solve: 2<sup>x+2</sup> + 2<sup>x</sup> = 40",
+ nAns:"x = 8",nWhy:"She got to 2<sup>x</sup> = 8, then wrote x = 8. But 2<sup>3</sup> = 8.",
+ dAns:"x = 3",dWhy:"2<sup>x</sup>(4 + 1) = 40, so 2<sup>x</sup> = 8 and x = 3.",
+ C:"Solve: 5<sup>x+1</sup> + 5<sup>x</sup> = 150",cAns:"x = 2",
+ warm:"Two-term exponential equations. I can solve 5^x = 25, it's the two terms that get me. Can we start there?",
+ steps:[
+  {q:"5<sup>x+1</sup> is the same as 5<sup>x</sup> times what?",a:5,u:"",hint:"Exponent law: a<sup>m+n</sup> = a<sup>m</sup> × a<sup>n</sup>."},
+  {q:"So 5<sup>x</sup>(5 + 1) = 150. What is 5<sup>x</sup>?",a:25,u:"5<sup>x</sup> =",hint:"Divide 150 by 6."},
+  {q:"So what is x?",a:2,u:"x =",hint:"5 to what power gives 25?"},
+  {q:"Check your form. 5<sup>3</sup> + 5<sup>2</sup> = ?",a:150,u:"=",hint:"125 plus 25.",check:true}],
+ D:"Solve: 2<sup>x+1</sup> + 2<sup>x</sup> = 48",dA:4,dU:"x =",dExp:"2<sup>x</sup>(2 + 1) = 48, so 2<sup>x</sup> = 16 and x = 4."},
+
+"12-lit":{name:"Grade 12 · Mathematical Literacy",topic:"Past paper style · Paper 1 · Percentage increase",
+ A:"A taxi fare of R20 goes up by 15%. What is the new fare?",
+ naledi:{ask:"pls just give me the answer. R20 fare up 15%",sol:"Here is the full solution. 15% of R20: 10% is R2 and 5% is R1, so 15% is R3. R20 + R3 = R23. The new fare is R23."},
+ dylan:[
+  {w:"me",t:"Percentage increase. I find the percent fine, then forget what comes next. Guide me?"},
+  {w:"mj",t:"What is 15% of R20? Try 10% first, then 5%."},
+  {w:"me",t:"R2 + R0.50 = R2.50?"},
+  {w:"mj",t:"Check the 5%. It is half of 10%."},
+  {w:"me",t:"half of R2 is R1. so R3"},
+  {w:"mj",t:"And the new fare?"},
+  {w:"me",t:"R20 + R3 = R23"}],
+ B:"A cellphone contract of R350 a month goes up by 8%. What is the new monthly cost?",
+ nAns:"R358",nWhy:"She added R8 instead of 8%.",
+ dAns:"R378",dWhy:"8% of R350 is R28. R350 + R28 = R378.",
+ C:"Rent of R4 500 a month goes up by 6%. What is the new rent?",cAns:"R4 770",
+ warm:"Percentage increase. I can find the percent, then I forget what comes next. Can we start there?",
+ steps:[
+  {q:"What is 1% of R4 500?",a:45,u:"R",hint:"Divide by 100."},
+  {q:"So what is 6% of R4 500?",a:270,u:"R",hint:"Six lots of R45."},
+  {q:"What is the new rent?",a:4770,u:"R",hint:"Add the increase to the old rent."},
+  {q:"Check your form. R4 770 − R4 500 = ?",a:270,u:"R",hint:"It should match the 6% increase.",check:true}],
+ D:"An electricity bill of R1 200 goes up by 12%. What is the new bill?",dA:1344,dU:"R",dExp:"12% of R1 200 is R144. R1 200 + R144 = R1 344."}
+};
+
+/* ---------- STATE + HELPERS ---------- */
+const $=id=>document.getElementById(id);
+const card=$("card");
+const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let G=null,K=null,X=null;
+let M={feel:0,real:0};
+let used={warm:false,spot:false,check:false,rep:false,askedAnswer:false};
+
+function say(t){$("sr").textContent=t.replace(/<[^>]+>/g,"")}
+function h(html){card.innerHTML=html;const f=card.querySelector("h1");if(f){f.setAttribute("tabindex","-1");f.focus({preventScroll:true})}window.scrollTo({top:0,behavior:"auto"})}
+function coach(t){return `<div class="coach"><div class="avatar">Z</div><div class="say"><b>Coach Zaid</b>${t}</div></div>`}
+function showMeters(on){$("mymeters").hidden=!on}
+function setMeters(){
+  $("mf").textContent=Math.round(M.feel);$("mr").textContent=Math.round(M.real);
+  $("mff").style.width=M.feel+"%";$("mrf").style.width=M.real+"%";
+}
+function num(v){
+  v=String(v||"").replace(/[−–]/g,"-").replace(/[^0-9.,\-]/g,"").replace(/,/g,"");
+  if(v===""||v==="-"||v===".")return NaN;return Number(v);
+}
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function answerRow(unit,id){
+  return `<div class="answer"><label class="ansbox" for="${id}">${unit?`<span>${unit}</span>`:""}<input id="${id}" inputmode="decimal" autocomplete="off" aria-label="Your answer" placeholder="?"></label><button class="btn" type="button" id="${id}-go">Lift</button></div>`;
+}
+function wireAnswer(id,fn){
+  const inp=$(id);setTimeout(()=>inp.focus({preventScroll:true}),60);
+  const go=()=>{const v=num(inp.value);if(isNaN(v)){inp.focus();return}fn(v,inp)};
+  $(id+"-go").onclick=go;
+  inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
+}
+
+/* ---------- FOUR MOVES POP-UP ---------- */
+let lastFocus=null;
+function openMoves(){lastFocus=document.activeElement;$("overlay").hidden=false;$("closeMoves").focus()}
+function closeMoves(){$("overlay").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus({preventScroll:true})}
+$("movesBtn").onclick=openMoves;
+$("closeMoves").onclick=closeMoves;
+$("overlay").onclick=e=>{if(e.target===$("overlay"))closeMoves()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("overlay").hidden)closeMoves()});
+
+/* ---------- 1. CHOOSE ---------- */
+function choose(){
+  G=null;K=null;X=null;M={feel:0,real:0};used={warm:false,spot:false,check:false,rep:false,askedAnswer:false};
+  showMeters(false);$("progLabel").hidden=true;setMeters();
+  h(`<div class="tag">Programme Day</div>
+  <h1>Which grade are you in?</h1>
+  <p class="small">Your programme is built for your grade.</p>
+  <div class="grid" id="grades">${[8,9,10,11,12].map(g=>`<button class="pick" type="button" data-g="${g}"><small>Grade</small>${g}</button>`).join("")}</div>
+  <div id="subj"></div>`);
+  card.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{
+    G=+b.dataset.g;card.querySelectorAll("[data-g]").forEach(x=>x.classList.toggle("sel",x===b));
+    if(G<10){K=String(G);start();return}
+    $("subj").innerHTML=`<div style="display:flex;flex-direction:column;gap:10px"><h2>Which maths do you take?</h2>
+      <div class="grid"><button class="pick wide" type="button" data-s="maths"><small>Subject</small>Mathematics</button>
+      <button class="pick wide" type="button" data-s="lit"><small>Subject</small>Maths Literacy</button></div></div>`;
+    $("subj").querySelectorAll("[data-s]").forEach(s=>s.onclick=()=>{K=G+"-"+s.dataset.s;start()});
+    $("subj").querySelector("button").focus();
+  });
+}
+function start(){
+  X=P[K];$("progLabel").textContent=X.name;$("progLabel").hidden=false;
+  h(`<div class="tag">Your programme · ${X.name}</div>
+  <h1>${X.topic}</h1>
+  <div class="stakes">${STAKES[G]}</div>
+  ${coach("Same gym as before. Tonight, two scholars in your grade hit the same problem at 9pm. Watch how they train. Then it is your turn on the bench.")}
+  <button class="btn" type="button" id="go">Go to 9pm</button>`);
+  $("go").onclick=night;
+  openMoves();
+}
+
+/* ---------- 2. 9PM ---------- */
+function bubble(m){return `<div class="msg ${m.w}">${esc(m.t)}</div>`}
+function night(){
+  const n=[{w:"me",t:X.naledi.ask},{w:"mj",t:X.naledi.sol},{w:"me",t:"ohh ok, that makes total sense. thanks!"}];
+  const d=X.dylan.concat(CLOSE);
+  h(`<div class="tag">9pm · Same problem</div>
+  <h1>Naledi and Dylan are stuck</h1>
+  <div class="puzzle"><small>Tonight's homework</small>${X.A}</div>
+  <div class="duo">
+    <div class="chat"><h3><i style="background:var(--feel)">N</i>Naledi<span class="time">Done in 2 min</span></h3>${n.map(bubble).join("")}</div>
+    <div class="chat"><h3><i style="background:var(--real)">D</i>Dylan<span class="time">Done in 15 min</span></h3>${d.map(bubble).join("")}</div>
+  </div>
+  <button class="btn" type="button" id="go" disabled>Predict test day</button>`);
+  const chats=[...card.querySelectorAll(".chat")].map(c=>[...c.querySelectorAll(".msg")]);
+  let i=0;const max=Math.max(chats[0].length,chats[1].length);
+  (function step(){
+    if(i>=max){$("go").disabled=false;say("Both chats have finished.");return}
+    chats.forEach(c=>{if(c[i])c[i].classList.add("on")});i++;
+    setTimeout(step,reduce?60:900);
+  })();
+  $("go").onclick=predict;
+}
+
+/* ---------- 3. PREDICT ---------- */
+let pred={nf:50,nr:50,df:50,dr:50};
+function predSlider(id,label,cls){
+  return `<div class="pslide"><label for="${id}"><span>${label}</span><b id="${id}-v">50</b></label>
+  <input type="range" id="${id}" class="${cls}" min="0" max="100" step="5" value="50"></div>`;
+}
+function predict(){
+  h(`<div class="tag">Predict</div>
+  <h1>Next week there is a test. No Mindjoy.</h1>
+  <p>Naledi read every step and it made sense. She was done in 2 minutes. Dylan took 15 and made mistakes on the way. Set the meters for how you think each of them will be on test day.</p>
+  <div class="duo">
+    <div class="chat"><h3><i style="background:var(--feel)">N</i>Naledi</h3>
+      ${predSlider("nf","Feels strong","f")}${predSlider("nr","Actually strong","r")}</div>
+    <div class="chat"><h3><i style="background:var(--real)">D</i>Dylan</h3>
+      ${predSlider("df","Feels strong","f")}${predSlider("dr","Actually strong","r")}</div>
+  </div>
+  <button class="btn" type="button" id="lock">Lock in my prediction</button>
+  <div id="whoFb"></div>
+  <div id="movesQ"></div>`);
+  ["nf","nr","df","dr"].forEach(k=>{const r=$(k);r.oninput=()=>{pred[k]=+r.value;$(k+"-v").textContent=r.value};pred[k]=50});
+  $("lock").onclick=()=>{
+    ["nf","nr","df","dr"].forEach(k=>$(k).disabled=true);$("lock").remove();
+    let msg;
+    if(pred.nr>=pred.dr)msg="You think Naledi will be at least as strong as Dylan. She read a clear, correct solution and understood every step. That should be enough. Should it?";
+    else if(pred.nf-pred.nr>=20)msg="You predicted a gap for Naledi: she will feel stronger than she is. Test day will tell.";
+    else msg="You think Dylan will be stronger. Test day will tell by how much.";
+    $("whoFb").innerHTML=`<div class="result info">${msg}</div>`;say(msg);movesQ();
+  };
+}
+function movesQ(){
+  $("movesQ").innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
+  <h2>Which moves did Dylan use? Tap all that apply.</h2>
+  <div class="opts" id="mv">
+    <button class="opt" type="button" data-v="warm" aria-pressed="false"><span class="lbl">Move 1</span>Warm up<span class="def">Tell Mindjoy what you already get and where you get lost.</span></button>
+    <button class="opt" type="button" data-v="spot" aria-pressed="false"><span class="lbl">Move 2</span>Spot me<span class="def">Ask for a hint, not the answer, and do the step yourself.</span></button>
+    <button class="opt" type="button" data-v="rep" aria-pressed="false"><span class="lbl">Move 3</span>One more rep<span class="def">Ask for a similar question and try it alone.</span></button>
+    <button class="opt" type="button" data-v="form" aria-pressed="false"><span class="lbl">Move 4</span>Check my form<span class="def">Show your working or explain it back, and ask what went wrong.</span></button>
+  </div>
+  <button class="btn" type="button" id="chk">Check</button>
+  <div id="mvFb"></div></div>`;
+  const opts=[...card.querySelectorAll("#mv .opt")];
+  opts.forEach(o=>o.onclick=()=>{o.classList.toggle("sel");o.setAttribute("aria-pressed",o.classList.contains("sel"))});
+  $("chk").onclick=()=>{
+    const right=["warm","spot","rep"];
+    opts.forEach(o=>{o.disabled=true;const r=right.includes(o.dataset.v);o.classList.remove("sel");if(r)o.classList.add("right");else if(o.getAttribute("aria-pressed")==="true")o.classList.add("wrong")});
+    const picked=opts.filter(o=>o.getAttribute("aria-pressed")==="true").map(o=>o.dataset.v).sort().join();
+    const ok=picked===right.slice().sort().join();
+    $("chk").remove();
+    $("mvFb").innerHTML=`<div class="result ${ok?"good":"info"}">${ok?"Exactly. ":""}Dylan warmed up (he said what he could do and where he got lost), asked for a spot (a hint, not the answer), and asked for one more rep to try alone. He did not check his form this time.</div>
+    <button class="btn" type="button" id="go" style="margin-top:12px">Go to test day</button>`;
+    say($("mvFb").textContent);$("go").onclick=testDay;
+  };
+  $("movesQ").querySelector("h2").scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});
+}
+
+/* ---------- 4. TEST DAY ---------- */
+function mini(f,r,id){return `<div class="meter"><div class="lbl">Feels strong <b>${f}</b></div><div class="track"><div class="fill f" data-w="${f}"></div></div></div>
+  <div class="meter"><div class="lbl">Actually strong <b>${r}</b></div><div class="track"><div class="fill r" data-w="${r}"></div></div></div>`}
+function testDay(){
+  h(`<div class="tag">One week later · Test day · No Mindjoy</div>
+  <h1>Same type of question</h1>
+  <div class="puzzle"><small>Test question</small>${X.B}</div>
+  <div class="duo">
+    <div class="chat"><h3><i style="background:var(--feel)">N</i>Naledi</h3>
+      <div class="mark x">${X.nAns} ✗</div><p class="small">${X.nWhy}</p>${mini(85,20)}
+      <p class="small">You predicted: feels ${pred.nf}, actually ${pred.nr}</p></div>
+    <div class="chat"><h3><i style="background:var(--real)">D</i>Dylan</h3>
+      <div class="mark ok">${X.dAns} ✓</div><p class="small">${X.dWhy}</p>${mini(75,80)}
+      <p class="small">You predicted: feels ${pred.df}, actually ${pred.dr}</p></div>
+  </div>
+  <div class="result info">Naledi understood every step when she read it. Reading it felt like knowing it. On test day, with nobody to show her, she could not do it. ${STAKES[G]}</div>
+  ${coach("Same homework. Same tutor. Different ask. Right, your turn on the bench.")}
+  <button class="btn" type="button" id="go">Your turn</button>`);
+  requestAnimationFrame(()=>setTimeout(()=>card.querySelectorAll(".fill[data-w]").forEach(f=>f.style.width=f.dataset.w+"%"),reduce?0:250));
+  $("go").onclick=yourTurn;
+}
+
+/* ---------- 5. YOUR TURN ---------- */
+function yourTurn(note){
+  showMeters(true);setMeters();
+  h(`<div class="tag">Your turn · 9pm</div>
+  <h1>Now you are stuck</h1>
+  <div class="puzzle"><small>Your homework</small>${X.C}</div>
+  <p>Mindjoy is open. What do you send?</p>
+  <div class="opts" id="ask">
+    <button class="opt bubble" type="button" data-v="answer" ${used.askedAnswer?"disabled":""}><span class="lbl">Message</span>Just give me the answer.</button>
+    <button class="opt bubble" type="button" data-v="warm"><span class="lbl">Message</span>${esc(X.warm)}</button>
+    <button class="opt bubble" type="button" data-v="spot"><span class="lbl">Message</span>Don't give me the answer. Give me a hint for the first step.</button>
+  </div>
+  <div id="askFb">${note||""}</div>`);
+  card.querySelectorAll("#ask .opt").forEach(b=>b.onclick=()=>{
+    const v=b.dataset.v;
+    if(v==="answer"){
+      used.askedAnswer=true;M.feel=70;setMeters();
+      $("askFb").innerHTML=`<div class="duo" style="grid-template-columns:1fr"><div class="chat"><div class="msg me on">Just give me the answer.</div><div class="msg mj on">${esc(X.cAns)}. Want me to show you how to get there?</div></div></div>
+      <div class="result bad">Your Feels strong meter just went up. Your Actually strong meter did not move. Test day is coming. Try a different ask.</div>`;
+      b.disabled=true;say("You asked for the answer. Feels strong went up. Actually strong did not move.");
+      return;
+    }
+    if(v==="warm")used.warm=true; else used.spot=true;
+    const reply=v==="warm"?"That helps a lot. Let's start right there.":"Deal. One step at a time. You do the lifting.";
+    stepIdx=0;startReal=M.real;steps(`<div class="duo" style="grid-template-columns:1fr"><div class="chat"><div class="msg me on">${esc(v==="warm"?X.warm:"Don't give me the answer. Give me a hint for the first step.")}</div><div class="msg mj on">${reply}</div></div></div>`);
+  });
+}
+let stepIdx=0,startReal=0;
+function steps(lead){
+  const S=X.steps[stepIdx];
+  const dots=X.steps.map((_,i)=>`<i class="${i<stepIdx?"done":""}"></i>`).join("");
+  h(`<div class="tag">Your turn · ${S.check?"Check your form":"Rep "+(stepIdx+1)+" of "+X.steps.length}</div>
+  <h1>${S.check?"Check your form":"You lift, Mindjoy spots"}</h1>
+  <div class="puzzle"><small>Your homework</small>${X.C}</div>
+  ${lead||""}
+  <div class="reps" aria-label="Step ${stepIdx+1} of ${X.steps.length}">${dots}</div>
+  <div class="chat"><div class="msg mj on">${S.q}</div></div>
+  ${answerRow(S.u,"ans")}
+  <div id="fb"></div>
+  <button class="btn ghost" type="button" id="spot">Spot me</button>`);
+  $("spot").onclick=()=>{used.spot=true;$("fb").innerHTML=`<p class="hint">${S.hint}</p>`;say(S.hint)};
+  wireAnswer("ans",(v,inp)=>{
+    if(Math.abs(v-S.a)<1e-9){
+      if(S.check)used.check=true;
+      stepIdx++;
+      M.real=Math.min(70,startReal+(70-startReal)*stepIdx/X.steps.length);
+      M.feel=Math.max(M.feel,M.real);setMeters();
+      if(stepIdx<X.steps.length)steps(`<div class="result good">Rep done.</div>`);
+      else rep();
+    }else{
+      $("fb").innerHTML=`<p class="nudge">Not quite. Try again, or tap Spot me.</p>`;say("Not quite. Try again, or tap Spot me.");inp.select();
+    }
+  });
+}
+
+/* ---------- 6. ONE MORE REP ---------- */
+let repTries=0;
+function rep(){
+  repTries=0;
+  h(`<div class="tag">One more rep · No spotter</div>
+  <h1>Now one on your own</h1>
+  ${coach("You asked for one more like it. No hints this time. Just you and the bar.")}
+  <div class="puzzle"><small>One more rep</small>${X.D}</div>
+  ${answerRow(X.dU,"ans")}
+  <div id="fb"></div>`);
+  wireAnswer("ans",(v,inp)=>{
+    if(Math.abs(v-X.dA)<1e-9){
+      if(repTries<2)used.rep=true;
+      M.real=used.rep?95:80;M.feel=Math.max(M.feel,M.real);setMeters();
+      $("fb").innerHTML=`<div class="result good">${used.rep?"Lifted it on your own.":"Got there."} ${X.dExp}</div><button class="btn" type="button" id="go" style="margin-top:12px">See your session report</button>`;
+      $("ans").disabled=true;$("ans-go").disabled=true;$("go").onclick=report;say("Correct.");
+      return;
+    }
+    repTries++;
+    if(repTries>=2){
+      $("fb").innerHTML=`<p class="nudge">Not quite. You can keep trying, or see how it works.</p><button class="btn ghost" type="button" id="show" style="margin-top:10px">Show me how</button>`;
+      $("show").onclick=()=>{used.rep=false;repTries=99;M.real=Math.max(M.real,75);setMeters();
+        $("fb").innerHTML=`<div class="result info">${X.dExp} Next time, ask Mindjoy for another rep and try again.</div><button class="btn" type="button" id="go" style="margin-top:12px">See your session report</button>`;
+        $("ans").disabled=true;$("ans-go").disabled=true;$("go").onclick=report};
+    }else{$("fb").innerHTML=`<p class="nudge">Not quite. Go back over your steps and try again.</p>`}
+    say("Not quite.");inp.select();
+  });
+}
+
+/* ---------- 7. REPORT ---------- */
+function report(){
+  const mv=(k,name,desc)=>`<div class="mv ${used[k]?"yes":"no"}"><b>${used[k]?"✓ ":""}${name}</b><span>${desc}</span></div>`;
+  const count=["warm","spot","rep","check"].filter(k=>used[k]).length;
+  h(`<div class="tag">Session report · ${X.name}</div>
+  <h1>${count===4?"Full session. All four moves.":count+" of 4 moves used"}</h1>
+  <div class="movelist">
+    ${mv("warm","Warm up","You told Mindjoy where you were.")}
+    ${mv("spot","Spot me","You asked for hints, not answers.")}
+    ${mv("rep","One more rep","You solved one alone, with no help.")}
+    ${mv("check","Check my form","You checked your answer works.")}
+  </div>
+  ${used.askedAnswer?`<div class="result info">You asked for the answer first. It felt good, and it did not make you stronger. Then you changed your ask. That is the move that matters.</div>`:""}
+  <div class="stakes">${STAKES[G]}</div>
+  <p>This is how to train with Mindjoy for every subject, all year.</p>
+  <p class="small">Continue to the next slide.</p>
+  <button class="btn ghost" type="button" id="again">Train again</button>`);
+  $("again").onclick=choose;
+}
+
+choose();
+})();
+</script>
+</body>
+</html>
